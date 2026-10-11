@@ -8,11 +8,6 @@
 # CiefpChannelHistory
 # Channel watch history with statistics, EPG and TMDB enrichment
 #
-# -*- coding: utf-8 -*-
-#
-# CiefpChannelHistory
-# Channel watch history with statistics, EPG and TMDB enrichment
-#
 from __future__ import print_function
 import os
 import re
@@ -36,28 +31,7 @@ from Screens.Screen import Screen
 from Screens.VirtualKeyBoard import VirtualKeyBoard
 from Screens.MessageBox import MessageBox
 from enigma import eTimer, eServiceReference, eConsoleAppContainer
-
-# ---------- PLUGIN CONSTANTS (MUST BE BEFORE LOCAL IMPORTS) ----------
-PLUGIN_NAME = "CiefpChannelHistory"
-PLUGIN_DESC = "Channel watch history with statistics, EPG and TMDB info"
-PLUGIN_VERSION = "1.0"
-PLUGIN_DIR = os.path.dirname(__file__) if '__file__' in globals() else \
-    "/usr/lib/enigma2/python/Plugins/Extensions/CiefpChannelHistory"
-
-TMDB_API_KEY_FILE = os.path.join(PLUGIN_DIR, "tmdbapikey.txt")
-OMDB_API_KEY_FILE = os.path.join(PLUGIN_DIR, "omdbapikey.txt")
-GROQ_API_KEY_FILE = os.path.join(PLUGIN_DIR, "groqapikey.txt")
-
-PLUGIN_ICON = os.path.join(PLUGIN_DIR, "icon.png")
-BACKGROUND_SETTINGS = os.path.join(PLUGIN_DIR, "settings.png")
-PLACEHOLDER = os.path.join(PLUGIN_DIR, "placeholder.png")
-
-VERSION_URL = "https://raw.githubusercontent.com/ciefp/CiefpChannelHistory/main/version.txt"
-UPDATE_COMMAND = ("wget -q --no-check-certificate "
-                  "https://raw.githubusercontent.com/ciefp/CiefpChannelHistory/main/installer.sh "
-                  "-O - | /bin/sh")
-
-# ---------- LOCAL COMPONENTS (POSLIJE konstanti) ----------
+# Local components
 from .components.history_db import HistoryDB
 from .components.history_hook import (ChannelTracker, install_hook,
                                       uninstall_hook, get_tracker)
@@ -70,7 +44,6 @@ from .components.tmdb_client import (tmdb_search_multi, tmdb_details,
 from .components.screens.epg_list_screen import EPGListScreen
 from .components.channel_info import (get_channel_name, get_channel_provider,
                                       parse_service_type, detect_service_type)
-
 # ---------- CONFIG ----------
 config.plugins.ciefpchannelhistory = ConfigSubsection()
 config.plugins.ciefpchannelhistory.db_folder = ConfigSelection(
@@ -116,6 +89,26 @@ config.plugins.ciefpchannelhistory.language = ConfigSelection(default="en-US", c
     ("it-IT", "Italiano"),
     ("ru-RU", "Русский"),
 ])
+
+PLUGIN_NAME = "CiefpChannelHistory"
+PLUGIN_DESC = "Channel watch history with statistics, EPG and TMDB info"
+PLUGIN_VERSION = "1.1"
+PLUGIN_DIR = os.path.dirname(__file__) if '__file__' in globals() else \
+    "/usr/lib/enigma2/python/Plugins/Extensions/CiefpChannelHistory"
+
+TMDB_API_KEY_FILE = os.path.join(PLUGIN_DIR, "tmdbapikey.txt")
+OMDB_API_KEY_FILE = os.path.join(PLUGIN_DIR, "omdbapikey.txt")
+GROQ_API_KEY_FILE = os.path.join(PLUGIN_DIR, "groqapikey.txt")
+
+PLUGIN_ICON = os.path.join(PLUGIN_DIR, "icon.png")
+BACKGROUND_SETTINGS = os.path.join(PLUGIN_DIR, "settings.png")
+PLACEHOLDER = os.path.join(PLUGIN_DIR, "placeholder.png")
+
+VERSION_URL = "https://raw.githubusercontent.com/ciefp/CiefpChannelHistory/main/version.txt"
+UPDATE_COMMAND = ("wget -q --no-check-certificate "
+                  "https://raw.githubusercontent.com/ciefp/CiefpChannelHistory/main/installer.sh "
+                  "-O - | /bin/sh")
+
 
 # ---------- API KEY LOAD/SAVE ----------
 def _load_key_from_file(path, cfg_attr):
