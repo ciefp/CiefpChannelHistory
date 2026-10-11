@@ -1090,9 +1090,10 @@ class SettingsScreen(Screen):
         <screen name="CiefpChannelHistorySettings" position="center,center"
                 size="1400,900" title="..:: CiefpChannelHistory Settings ::.."
                 backgroundColor="#011a2e">
-            <widget name="menu" position="50,50" size="1300,750"
+            <widget name="menu" position="50,50" size="800,750"
                     scrollbarMode="showOnDemand" itemHeight="44"
                     font="Regular;24" backgroundColor="#011a2e"/>
+            <widget name="background" position="850,0" size="500,750" pixmap="%s" alphatest="on" />   
             <widget name="status" position="50,810" size="1300,40" font="Regular;24"
                     foregroundColor="#00FF00" backgroundColor="#011a2e"/>
             <ePixmap pixmap="buttons/red.png" position="0,860" size="35,35" alphatest="blend"/>
@@ -1104,13 +1105,15 @@ class SettingsScreen(Screen):
                     foregroundColor="white" backgroundColor="#008000"
                     halign="center" valign="center"/>
         </screen>
-    """
+    """% BACKGROUND_SETTINGS
+
 
     def __init__(self, session):
         Screen.__init__(self, session)
         self.session = session
         self["menu"] = MenuList([])
         self["status"] = Label("Settings")
+        self["background"] = Pixmap()
         self["actions"] = ActionMap(
             ["OkCancelActions", "ColorActions"],
             {
