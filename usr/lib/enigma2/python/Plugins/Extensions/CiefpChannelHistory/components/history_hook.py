@@ -190,6 +190,17 @@ class ChannelTracker:
         if self.pending_ref and self.pending_start:
             duration = now - self.pending_start
             if duration >= self.min_watch:
+                # === PRESKOČI ONLINE VIDEO (YouTube, itd.) ===
+                try:
+                    from .channel_info import is_online_video_ref
+                    if is_online_video_ref(self.pending_ref):
+                        print("[CiefpChannelHistory] Skipping online video: %s"
+                              % self.pending_ref[:80])
+                        self.pending_ref = None
+                        self.pending_start = None
+                        return
+                except Exception as e:
+                    print("[CiefpChannelHistory] online video check error:", e)
                 # === PRIKUPI METAPODATKE ===
                 sat_pos = ""
                 sat_name = ""
@@ -276,6 +287,17 @@ class ChannelTracker:
         if self.pending_ref and self.pending_start:
             duration = now - self.pending_start
             if duration >= self.min_watch:
+                # === PRESKOČI ONLINE VIDEO (YouTube, itd.) ===
+                try:
+                    from .channel_info import is_online_video_ref
+                    if is_online_video_ref(self.pending_ref):
+                        print("[CiefpChannelHistory] Skipping online video (commit): %s"
+                              % self.pending_ref[:80])
+                        self.pending_ref = None
+                        self.pending_start = None
+                        return
+                except Exception as e:
+                    print("[CiefpChannelHistory] online video check error:", e)
                 sat_pos = ""
                 sat_name = ""
                 try:

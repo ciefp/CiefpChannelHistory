@@ -92,7 +92,7 @@ config.plugins.ciefpchannelhistory.language = ConfigSelection(default="en-US", c
 
 PLUGIN_NAME = "CiefpChannelHistory"
 PLUGIN_DESC = "Channel watch history with statistics, EPG and TMDB info"
-PLUGIN_VERSION = "1.1"
+PLUGIN_VERSION = "1.2"
 PLUGIN_DIR = os.path.dirname(__file__) if '__file__' in globals() else \
     "/usr/lib/enigma2/python/Plugins/Extensions/CiefpChannelHistory"
 
@@ -447,6 +447,19 @@ class CiefpChannelHistoryMain(Screen):
             current_name = get_channel_name(current_ref) or ""
             current_provider = get_channel_provider(current_ref) or ""
             current_type = detect_service_type(current_ref)
+        # === FILTER ONLINE VIDEO (YouTube, itd.) ===
+        try:
+            from .components.channel_info import is_online_video_ref
+            channels = [c for c in channels
+                        if not is_online_video_ref(c.get("ref", ""))]
+            # Ako je trenutni kanal online video — ne prikazuj ga na vrhu
+            if current_ref and is_online_video_ref(current_ref):
+                current_ref = None
+                current_name = ""
+                current_provider = ""
+                current_type = "unknown"
+        except Exception as e:
+            print("[CiefpChannelHistory] filter online video error:", e)
 
         # === FILTER ADULT KANALA ===
         try:
@@ -881,8 +894,9 @@ class StatsScreen(Screen):
             "Overview",
             "Top channels",
             "By service type",
-            "By satellite",         # NOVO
-            "By encryption",        # NOVO
+            "By satellite",
+            "By encryption",
+            "By provider",
             "By hour of day",
             "By weekday",
             "Currently typical",
@@ -932,6 +946,8 @@ class StatsScreen(Screen):
             self._show_by_satellite()
         elif name == "By encryption":
             self._show_by_encryption()
+        elif name == "By provider":
+            self._show_by_provider()
         elif name == "By hour of day":
             self._show_by_hour()
         elif name == "By weekday":
@@ -1040,6 +1056,24 @@ class StatsScreen(Screen):
                          (label[:28], format_duration(sec), bar, pct, r["cnt"]))
         self["content"].setText("\n".join(lines))
 
+    def _show_by_provider(self):
+        rows = self.db.get_stats_by_provider()
+        if not rows:
+            self["content"].setText("No provider data yet.\n\n"
+                                    "Watch some channels to collect data.")
+            return
+        total = sum(r["total"] for r in rows) or 1
+        lines = ["BY PROVIDER", "-" * 60]
+        for r in rows:
+            provider = r.get("provider") or "Unknown"
+            sec = r["total"]
+            pct = 100.0 * sec / total
+            bar = format_bar(pct)
+            lines.append("%-28s %10s  %s %5.1f%%  (%d ch)" %
+                         (provider[:28], format_duration(sec),
+                          bar, pct, r["cnt"]))
+        self["content"].setText("\n".join(lines))
+
     def _show_by_hour(self):
         rows = self.db.get_stats_by_hour()
         if not rows:
@@ -1047,9 +1081,12 @@ class StatsScreen(Screen):
             return
         total = sum(r["total"] for r in rows) or 1
         by_hour = {r["hour"]: r["total"] for r in rows}
-        lines = ["BY HOUR OF DAY (most watched)", "─" * 60]
-        sorted_hours = sorted(by_hour.items(), key=lambda x: x[1], reverse=True)[:10]
-        for hour, sec in sorted_hours:
+        lines = ["BY HOUR OF DAY (chronological)", "-" * 60]
+        # Sortiraj po satu (0-23), ne po procentu
+        for hour in range(24):
+            sec = by_hour.get(hour, 0)
+            if sec == 0:
+                continue  # preskoči sate bez podataka
             pct = 100.0 * sec / total
             bar = format_bar(pct)
             lines.append("%02d:00-%02d:00   %10s  %s %5.1f%%" %
@@ -1447,6 +1484,20 @@ class SettingsScreen(Screen):
 def sessionstart(reason, **kwargs):
     if reason == 0:  # start
         try:
+            # Reload parental cache
+            try:
+                from .components.channel_info import reload_parental_cache
+                reload_parental_cache()
+            except Exception as e:
+                print("[CiefpChannelHistory] parental reload error:", e)
+
+            # Reload lamedb cache (provider)
+            try:
+                from .components.channel_info import reload_lamedb_cache
+                reload_lamedb_cache()
+            except Exception as e:
+                print("[CiefpChannelHistory] lamedb reload error:", e)
+
             # Reload parental cache
             try:
                 from .components.channel_info import reload_parental_cache

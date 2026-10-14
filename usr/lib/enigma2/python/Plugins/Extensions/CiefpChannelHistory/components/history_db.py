@@ -567,6 +567,28 @@ class HistoryDB:
             except Exception as e:
                 print("[CiefpChannelHistory] get_stats_by_encryption error:", e)
                 return []
+    def get_stats_by_provider(self):
+        """Statistika po provider-u (iz channels.provider)."""
+        with self.lock:
+            try:
+                c = self.conn.cursor()
+                c.execute("""
+                    SELECT 
+                        CASE
+                            WHEN provider IS NULL OR provider = '' THEN 'Unknown'
+                            ELSE provider
+                        END as provider,
+                        SUM(total_seconds) as total,
+                        COUNT(*) as cnt,
+                        SUM(watch_count) as sessions
+                    FROM channels
+                    GROUP BY provider
+                    ORDER BY total DESC
+                """)
+                return [dict(row) for row in c.fetchall()]
+            except Exception as e:
+                print("[CiefpChannelHistory] get_stats_by_provider error:", e)
+                return []
 
     def close(self):
         try:
